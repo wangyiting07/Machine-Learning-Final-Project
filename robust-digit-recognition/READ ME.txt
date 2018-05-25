@@ -1,0 +1,62 @@
+Install:
+    for Window 10 :
+	# If your main Python version is not 3.5 or 3.6
+	conda create -n test python=3.6 numpy pyyaml mkl
+
+	# for CPU only packages
+	conda install -c peterjc123 pytorch-cpu
+
+	# for Windows 10 and Windows Server 2016, CUDA 8
+	conda install -c peterjc123 pytorch
+
+	# for Windows 10 and Windows Server 2016, CUDA 9
+	conda install -c peterjc123 pytorch cuda90
+
+	# for Windows 7/8/8.1 and Windows Server 2008/2012, CUDA 8
+	conda install -c peterjc123 pytorch_legacy
+
+    Use "conda install -c peterjc123 pytorch-cpu"
+    Meet error as "- pytorch-cpu -> mkl >=2018"
+    Solution: Update conda first with "conda update conda" and try again
+    If require the adiministration, then run command prompt as adiministrator(right click command prompt and choose "run as adiministrator")
+
+Install torchvision using "pip install torchvision"
+
+
+
+
+Process Data:
+1. transfer numpy to torch and build the dataset. 
+	"tensor_train_img = torch.from_numpy(train_img) # transform to torch tensors
+	 tensor_train_lbl = torch.from_numpy(train_lbl)
+	 my_trainset = utils.TensorDataset(tensor_train_img,tensor_train_lbl) # create your datset
+	 my_train_dataloader = utils.DataLoader(my_trainset,batch_size=batch_size, shuffle=True) # create your dataloader"
+
+Run:
+1. First version with 4-layers run successfully, but the loss of training is quit large and fail to predict testing set (got output all 1) 
+--- fail
+	Way to solve:
+		1. Change the parameter like bitch size, learning rate ,etc. See whether I can get lower loss
+		Works !!!! Change the learning rate from 0.01 to 0.001
+		So didn't try other two ways.
+		2. write my own dataset and use transform to do the normalization
+		3. There must be something wrong in CNN then. Because such CNN should get me a low loss. Go through the whole network again and try to find what's wrong with the network 
+2. Second version cahnge the learning rate to 0.001.
+--- Success with score 0.77015
+3. Then I begin to change epoch (previous one is 10). 
+ 
+ 	Change epoch from 10 to 100, The loss of training set drop from 0.03 to 0.0001.
+	--- Success with score 0.77984
+	Change epoch from 100 to 1000, The loss of training set drop from 0.0001 to 0.00001
+	--- Success with score 0.78803
+	We can see the predict score change a little bit and still very low.
+
+	So the problem of low score should be corruptted testing images.
+
+	Improvement:
+	--- add noise to training set. 
+	Beacsue the testing data are corruptted by two ways, I can add such noise according to the ratio to training set.
+
+4. Improvement: Since the testing data has been curruptted, approximately 40% of the data is clean, 40% of them are corrupted by Pattern 1 and the rest are corrupted by Pattern 2.
+So what I'm gonna do is randomly partition training set as the same ratio as testing set. And add same noise on different subset. Then train the model and test it.
+    1. Partition the dataset 

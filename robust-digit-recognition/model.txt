@@ -1,0 +1,9 @@
+Partition data
+
+add noise
+
+write data to .cvs
+
+change data from numpy to dataset
+
+CNN 4 layers
